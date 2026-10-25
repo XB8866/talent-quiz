@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>天赋特质测评</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232E5D4E'/%3E%3Cpath d='M16 6l2.4 5.2 5.6.8-4 4 1 5.6L16 18.6l-5 2.9 1-5.6-4-4 5.6-.8z' fill='%23C8923A'/%3E%3C/svg%3E">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    background: #F6F4EF;
+    color: #22303A;
+    line-height: 1.6;
+    padding: 24px 16px 40px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  main { max-width: 560px; width: 100%; margin: 0 auto; }
+  .head { text-align: center; margin-bottom: 24px; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; letter-spacing: .18em; color: #2E5D4E;
+    font-weight: 600; margin-bottom: 12px;
+  }
+  .eyebrow svg { flex: none; }
+  h1 { font-size: 28px; font-weight: 700; letter-spacing: .02em; color: #22303A; }
+  .head p { margin-top: 8px; font-size: 14px; color: #5A6670; }
+  .progress-wrap { background: #E6E1D7; border-radius: 999px; height: 8px; overflow: hidden; margin: 0 0 8px; }
+  .progress-bar { height: 100%; width: 0%; background: #2E5D4E; border-radius: 999px; transition: width .3s ease; }
+  .progress-txt { font-size: 13px; color: #5A6670; text-align: right; margin-bottom: 14px; }
+  .card {
+    background: #fff; border: 1px solid #E6E1D7; border-radius: 14px;
+    padding: 22px 18px; box-shadow: 0 1px 2px rgba(34,48,58,.04);
+  }
+  .q-title { font-size: 17px; font-weight: 600; margin-bottom: 16px; color: #22303A; }
+  .opt {
+    display: flex; align-items: center; gap: 12px;
+    border: 1.5px solid #E0DCD2; border-radius: 10px;
+    padding: 13px 14px; margin-bottom: 10px; cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+    min-height: 48px;
+  }
+  .opt:hover { border-color: #2E5D4E; }
+  .opt.sel { background: #EDF3EF; border-color: #2E5D4E; }
+  .opt .letter {
+    flex: none; width: 26px; height: 26px; border-radius: 50%;
+    border: 1.5px solid #C9C4B8; display: grid; place-items: center;
+    font-size: 13px; color: #5A6670; font-weight: 600;
+    transition: all .15s ease;
+  }
+  .opt.sel .letter { background: #2E5D4E; border-color: #2E5D4E; color: #fff; }
+  .opt .txt { font-size: 15px; color: #2C3842; }
+  .opt input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .submit-btn {
+    width: 100%; padding: 15px; margin-top: 6px;
+    border: none; border-radius: 11px; cursor: pointer;
+    background: #2E5D4E; color: #fff; font-size: 16px; font-weight: 600;
+    transition: background .15s ease;
+    min-height: 50px;
+  }
+  .submit-btn:hover { background: #27503F; }
+  .submit-btn:disabled { background: #B7C6BE; cursor: not-allowed; }
+  .result { text-align: center; padding: 30px 22px; }
+  .result .badge {
+    width: 72px; height: 72px; margin: 0 auto 16px; border-radius: 50%;
+    background: #EDF3EF; display: grid; place-items: center; color: #2E5D4E;
+  }
+  .result .res-label { font-size: 13px; letter-spacing: .15em; color: #5A6670; margin-bottom: 6px; }
+  .result .res-name { font-size: 26px; font-weight: 700; color: #2E5D4E; margin-bottom: 16px; }
+  .result .res-text { text-align: left; font-size: 15px; color: #3A464F; line-height: 1.8; }
+  .retry {
+    margin-top: 22px; width: 100%; padding: 14px; border: 1.5px solid #2E5D4E;
+    border-radius: 11px; background: transparent; color: #2E5D4E;
+    font-size: 15px; font-weight: 600; cursor: pointer; transition: background .15s ease;
+  }
+  .retry:hover { background: #EDF3EF; }
+  .hidden { display: none !important; }
+  .toast {
+    position: fixed; left: 50%; bottom: 32px; transform: translateX(-50%);
+    background: #22303A; color: #fff; padding: 11px 18px; border-radius: 10px;
+    font-size: 14px; box-shadow: 0 4px 16px rgba(0,0,0,.16);
+    opacity: 0; pointer-events: none; transition: opacity .2s ease;
+  }
+  .toast.show { opacity: 1; }
+  @media (min-width: 768px) {
+    body { padding: 40px 24px 60px; }
+    h1 { font-size: 32px; }
+    .card { padding: 26px 24px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="head">
+    <div class="eyebrow">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 3l2.4 5.2 5.6.8-4 4 1 5.6L12 15.9l-5 2.7 1-5.6-4-4 5.6-.8z" fill="currentColor"/>
+      </svg>
+      个人洞察
+    </div>
+    <h1>天赋特质测评</h1>
+    <p>凭第一直觉作答，共 10 题</p>
+  </header>
+  <section id="quizBox">
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="progress-txt" id="progressTxt">已答 0 / 10</div>
+    <div class="card">
+      <div class="q-title" id="qTitle"></div>
+      <div id="opts"></div>
+      <button class="submit-btn" id="submitBtn" disabled>提交查看结果</button>
+    </div>
+  </section>
+  <section id="resultBox" class="card result hidden">
+    <div class="badge">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 3l2.4 5.2 5.6.8-4 4 1 5.6L12 15.9l-5 2.7 1-5.6-4-4 5.6-.8z" fill="currentColor"/>
+      </svg>
+    </div>
+    <div class="res-label">你的天赋类型是</div>
+    <div class="res-name" id="resName"></div>
+    <div class="res-text" id="resText"></div>
+    <button class="retry" id="retryBtn">重新测评</button>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+<script>
+const QUESTIONS = [
+  { title: "空闲的时候你更愿意？", options: ["安静独处，思考自己的想法", "和少数好友轻松聊天", "动手做点手工、实操类事情", "参加热闹活动，认识新朋友"] },
+  { title: "遇到难题你习惯？", options: ["先理清逻辑，慢慢分析", "先感受这件事带给自己的情绪", "直接动手试，边做边调整", "找人一起商量讨论"] },
+  { title: "做计划的时候，你偏向？", options: ["提前写好详细方案，按计划走", "大概有方向，跟着感觉走", "随机应变，灵活调整", "喜欢大家一起安排分工"] },
+  { title: "别人评价你，更贴近哪一个？", options: ["理性、爱思考、想法多", "共情强、温柔、善于理解别人", "务实、执行力强、落地派", "外向活跃、感染力强"] },
+  { title: "学习新东西更喜欢？", options: ["看理论、文字资料慢慢理解", "看案例故事，感受其中道理", "实操上手，做一遍就懂", "和别人交流、听课互动学习"] },
+  { title: "做选择时优先参考？", options: ["利弊、逻辑、客观事实", "自己内心感受、是否舒服", "是否好用、能不能落地", "大家的意见和氛围"] },
+  { title: "你更讨厌？", options: ["逻辑混乱、没有条理", "冷漠、不被理解", "空谈想法，不落地", "沉闷、没有交流氛围"] },
+  { title: "任务截止前你一般？", options: ["提前完成，不拖延", "状态来了再动手", "临近截止效率最高", "和同伴互相督促完成"] },
+  { title: "灵感一般来自？", options: ["独自深度思考", "情绪、感受、故事", "动手尝试、实践当中", "和别人碰撞聊天"] },
+  { title: "理想的生活节奏？", options: ["规律有序，有规划", "松弛自在，随心一点", "充实忙碌，持续做事", "热闹，有人陪伴"] }
+];
+const RESULT_MAP = [
+  { min: 10, max: 16, name: "思辨洞察型", text: "你擅长深度思考、逻辑梳理，拥有很强的洞察力。你的天赋在于分析、复盘、看透事物底层规律，适合策划、研究、梳理方案类方向。你喜欢独立思考，不喜欢被打扰，静下心的时候创造力最强。需要注意不要过度内耗，多把想法落地。" },
+  { min: 17, max: 24, name: "共情感知型", text: "你拥有很强的感知力与共情天赋，很容易读懂别人的情绪，细腻温柔。你的优势在沟通、陪伴、内容创作、心理解读类方向。你对氛围、情绪非常敏感，适合做需要温度和感知力的事情。注意不要过度承接别人的情绪，学会自我保护。" },
+  { min: 25, max: 32, name: "实干落地型", text: "你是典型的行动派，务实、执行力强，擅长把想法变成现实。你的天赋在于实操、落地、解决现实问题，动手能力强，不怕繁琐。适合技术、执行、手工、运营落地类方向。你不喜欢空泛的理论，在具体做事里获得价值感。" },
+  { min: 33, max: 40, name: "活力外联型", text: "你自带感染力，擅长链接人，表达和社交是你的天赋。你很容易带动氛围、说服别人，适合对接、分享、推广、对外沟通类方向。你在与人互动的时候状态最好。注意不要因为迎合别人，忽略自己真实需求。" }
+];
+const answers = new Array(QUESTIONS.length).fill(0);
+let current = 0;
+const qTitle = document.getElementById("qTitle");
+const optsEl = document.getElementById("opts");
+const submitBtn = document.getElementById("submitBtn");
+const progressBar = document.getElementById("progressBar");
+const progressTxt = document.getElementById("progressTxt");
+const quizBox = document.getElementById("quizBox");
+const resultBox = document.getElementById("resultBox");
+const resName = document.getElementById("resName");
+const resText = document.getElementById("resText");
+const toast = document.getElementById("toast");
+const LETTERS = ["A", "B", "C", "D"];
+function renderQuestion() {
+  const q = QUESTIONS[current];
+  qTitle.textContent = (current + 1) + ". " + q.title;
+  optsEl.innerHTML = "";
+  q.options.forEach((opt, i) => {
+    const label = document.createElement("label");
+    label.className = "opt" + (answers[current] === i + 1 ? " sel" : "");
+    label.innerHTML =
+      '<span class="letter">' + LETTERS[i] + '</span>' +
+      '<span class="txt">' + opt + '</span>' +
+      '<input type="radio" name="q" value="' + (i + 1) + '">';
+    label.addEventListener("click", function () {
+      answers[current] = i + 1;
+      if (current < QUESTIONS.length - 1) {
+        current++;
+        renderQuestion();
+      }
+      updateProgress();
+    });
+    optsEl.appendChild(label);
+  });
+}
+function updateProgress() {
+  const done = answers.filter(v => v > 0).length;
+  progressTxt.textContent = "已答 " + done + " / 10";
+  progressBar.style.width = (done / 10 * 100) + "%";
+  submitBtn.disabled = done < 10;
+}
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 1800);
+}
+submitBtn.addEventListener("click", function () {
+  if (answers.some(v => v === 0)) {
+    showToast("还有题目没答完，请先完成全部 10 题");
+    return;
+  }
+  const total = answers.reduce((a, b) => a + b, 0);
+  const target = RESULT_MAP.find(r => total >= r.min && total <= r.max);
+  resName.textContent = target.name;
+  resText.textContent = target.text;
+  quizBox.classList.add("hidden");
+  resultBox.classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+document.getElementById("retryBtn").addEventListener("click", function () {
+  answers.fill(0);
+  current = 0;
+  resultBox.classList.add("hidden");
+  quizBox.classList.remove("hidden");
+  renderQuestion();
+  updateProgress();
+});
+renderQuestion();
+updateProgress();
+</script>
+</body>
+</html>
